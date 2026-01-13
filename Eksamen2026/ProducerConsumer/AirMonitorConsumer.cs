@@ -13,7 +13,7 @@ namespace Eksamen2026.ProducerConsumer
     {
         private readonly BlockingCollection<AirSensorSampleData> _dataQueue;
         private bool _isPaused = false;
-        public AirSensorSampleData? CurrentSample { get; private set; }//seneste sample, så observeren kan hente den, kan være null
+        public AirSensorSampleData? CurrentSample { get; private set; }//seneste sample, så observeren kan hente den - kan være null
         public AirMonitorConsumer(BlockingCollection<AirSensorSampleData> dataQueue)
         {
             _dataQueue = dataQueue;

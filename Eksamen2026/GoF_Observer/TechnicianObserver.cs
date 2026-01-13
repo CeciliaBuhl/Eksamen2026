@@ -26,7 +26,7 @@ namespace Eksamen2026.GoF_Observer
         public void HandleNotification()
         {
 
-            if (_airData.CurrentSample != null)
+            if (_airData.CurrentSample != null)//nyeste data
             {
                 int measurement = _airData.CurrentSample.Measurement;//henter measurement fra CurrentSample
                 if(measurement >2000)

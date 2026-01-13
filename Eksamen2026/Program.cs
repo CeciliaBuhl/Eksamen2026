@@ -2,6 +2,7 @@
 using Eksamen2026.GoF_Observer;
 using Eksamen2026.ProducerConsumer;
 using Eksamen2026.TechnicianStrategi;
+using Eksamen2026.VentilatorStrategi;
 
 BlockingCollection<AirSensorSampleData> sharedQueue = new BlockingCollection<AirSensorSampleData>();//Opret én tråd
 
@@ -13,9 +14,14 @@ var consumer = new AirMonitorConsumer(sharedQueue);
 INotification email = new EmailNotification();
 INotification sms = new SMSNotification();
 
+IVentilator ventilator1= new Ventilator(1);
+IVentilator ventilator2= new Ventilator(2);
+
 //Observers
 AirQualityLogObserver airQualityLogObserver = new AirQualityLogObserver(consumer);
 TechnicianObserver technicianObserver = new TechnicianObserver(consumer, email);
+VentilatorObserver ventilatorObserver1 = new VentilatorObserver(consumer, ventilator1,1);
+VentilatorObserver ventilatorObserver2 = new VentilatorObserver(consumer, ventilator2,2);
 
 Console.WriteLine("Air monitor system started");
 Console.WriteLine($"Activated noticifation handler: {technicianObserver.Notification.GetType().Name}");

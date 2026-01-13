@@ -14,13 +14,11 @@ namespace Eksamen2026.GoF_Observer
             _airData = airData;
             airData.Attach(this);
         }
-
         public void Update()
         {
-            AirSensorSampleData? sample = _airData.CurrentSample;//seneste sample
-            if (sample != null)
+            if (_airData.CurrentSample != null)//nyeste data
             {
-                Console.WriteLine($"{sample.TimeStamp} - PPM {sample.Measurement}, Sensor: {sample.SensorId}");
+                Console.WriteLine($"{_airData.CurrentSample.TimeStamp} - PPM {_airData.CurrentSample.Measurement}, Sensor: {_airData.CurrentSample.SensorId}");
             }
         }
     }
