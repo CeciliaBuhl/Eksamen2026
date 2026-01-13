@@ -15,11 +15,13 @@ namespace Eksamen2026.ProducerConsumer
         private readonly BlockingCollection<AirSensorSampleData> _dataQueue;
         private bool _isPaused = false;
         public AirSensorSampleData? CurrentSample { get; private set; }//seneste sample, så observeren kan hente den - kan være null
-        private Dictionary<int, AirSensorSampleData> _sensorData;//Dictionary til filter
-        
-        public AirMonitorConsumer(BlockingCollection<AirSensorSampleData> dataQueue)
+        private Dictionary<int, AirSensorSampleData> _sensorData = new();//Dictionary til filter
+        public IFilter Filter { get; private set; }
+        private int _numberOfSensors = 3;
+        public AirMonitorConsumer(BlockingCollection<AirSensorSampleData> dataQueue, IFilter filter)
         {
             _dataQueue = dataQueue;
+            Filter = filter;
         }
         public void StartConsuming()
         {
@@ -28,10 +30,23 @@ namespace Eksamen2026.ProducerConsumer
                 try
                 {
                     AirSensorSampleData sample = _dataQueue.Take();//tømmer kø lige meget hvad
+
                     if (!_isPaused)//udskriver kun, hvis den ikke er pauset
                     {
-                        CurrentSample = sample;//opdater tilstand til observer 
-                        Notify();//giv besked til observer
+                        _sensorData[sample.SensorId] = sample;
+
+                        if (_sensorData.Count == _numberOfSensors)//3 eller flere sensorer
+                        {
+                            var rawData = _sensorData.Values.ToList();
+                            int filteredValue = Filter.ApplyFilter(rawData);//anvender filteret på rådata
+
+                            sample.Measurement = filteredValue;
+                            CurrentSample = sample;//opdater tilstand til observer
+
+                            Console.WriteLine($"{Filter.GetType().Name} - Filtered: {filteredValue}");
+
+                            Notify();//giv besked til observer
+                        }
                     }
                 }
                 catch (InvalidOperationException ex)

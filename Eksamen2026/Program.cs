@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Eksamen2026.Configuration;
+using Eksamen2026.FilterStrategi;
 using Eksamen2026.GoF_Observer;
 using Eksamen2026.ProducerConsumer;
 using Eksamen2026.TechnicianStrategi;
@@ -7,14 +8,18 @@ using Eksamen2026.VentilatorStrategi;
 
 BlockingCollection<AirSensorSampleData> sharedQueue = new BlockingCollection<AirSensorSampleData>();//Opret én tråd
 
-var producer1 = new AirSensorProducer(1, sharedQueue);
-var producer2 = new AirSensorProducer(2, sharedQueue);
-var producer3 = new AirSensorProducer(3, sharedQueue);
-var consumer = new AirMonitorConsumer(sharedQueue);
-
 //Strategi
 INotification email = new EmailNotification();
 INotification sms = new SMSNotification();
+
+IFilter highestFilter = new HighestFilter();
+
+var producer1 = new AirSensorProducer(1, sharedQueue);
+var producer2 = new AirSensorProducer(2, sharedQueue);
+var producer3 = new AirSensorProducer(3, sharedQueue);
+var producer4 = new AirSensorProducer(4, sharedQueue);
+var producer5 = new AirSensorProducer(5, sharedQueue);
+var consumer = new AirMonitorConsumer(sharedQueue, highestFilter);
 
 IVentilator ventilator1 = new Ventilator(1);
 IVentilator ventilator2 = new Ventilator(2);
@@ -36,16 +41,18 @@ var currentSchoolConfig = configManager.LoadConfig("schoolConfig.json");
 AirQualityLogObserver airQualityLogObserver = new AirQualityLogObserver(consumer);
 TechnicianObserver technicianObserver = new TechnicianObserver(consumer, email);
 
-VentilatorObserver ventilatorObserver1 = new VentilatorObserver(consumer, ventilator1, 1);//uden config
-VentilatorObserver ventilatorObserver2 = new VentilatorObserver(consumer, ventilator2, 2, currentSchoolConfig);
+//VentilatorObserver ventilatorObserver1 = new VentilatorObserver(consumer, ventilator1, 1);//uden config
+VentilatorObserver ventilatorObserver1 = new VentilatorObserver(consumer, ventilator1, 1, currentOfficeConfig);
+VentilatorObserver ventilatorObserver2 = new VentilatorObserver(consumer, ventilator2, 2, currentOfficeConfig);
+//VentilatorObserver ventilatorObserver2 = new VentilatorObserver(consumer, ventilator2, 2, currentSchoolConfig);
 VentilatorObserver ventilatorObserver3 = new VentilatorObserver(consumer, ventilator3, 3, currentOfficeConfig);
 
 var defaultConfig = new VentilatorConfig();//default værdier
 
 Console.WriteLine("Air monitor system started");
 Console.WriteLine($"Activated noticifation handler: {technicianObserver.Notification.GetType().Name}");
-Console.WriteLine($"Loaded ventilator config {1}: Off: {defaultConfig.OffSetting} Low: {defaultConfig.LowSetting}, Medium: {defaultConfig.MediumSetting}, High: {defaultConfig.HighSetting}");
-Console.WriteLine($"Loaded ventilator config {2}: Off: {currentSchoolConfig.OffSetting} Low: {currentSchoolConfig.LowSetting}, Medium: {currentSchoolConfig.MediumSetting}, High: {currentSchoolConfig.HighSetting}");
+//Console.WriteLine($"Loaded ventilator config {1}: Off: {defaultConfig.OffSetting} Low: {defaultConfig.LowSetting}, Medium: {defaultConfig.MediumSetting}, High: {defaultConfig.HighSetting}");
+//Console.WriteLine($"Loaded ventilator config {2}: Off: {currentSchoolConfig.OffSetting} Low: {currentSchoolConfig.LowSetting}, Medium: {currentSchoolConfig.MediumSetting}, High: {currentSchoolConfig.HighSetting}");
 Console.WriteLine($"Loaded ventilator config {3}: Off: {currentOfficeConfig.OffSetting} Low: {currentOfficeConfig.LowSetting}, Medium: {currentOfficeConfig.MediumSetting}, High: {currentOfficeConfig.HighSetting}");
 
 Thread producerThread1 = new Thread(producer1.StartProducing);

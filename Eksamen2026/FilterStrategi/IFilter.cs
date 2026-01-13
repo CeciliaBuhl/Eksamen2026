@@ -8,6 +8,6 @@ namespace Eksamen2026.FilterStrategi
 {
     public interface IFilter
     {
-        public int Filter(List<AirSensorSampleData> airData);
+        public int ApplyFilter(List<AirSensorSampleData> airData);
     }
 }
