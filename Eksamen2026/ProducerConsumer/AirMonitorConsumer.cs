@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Threading.Tasks;
+using Eksamen2026.FilterStrategi;
 using Eksamen2026.GoF_Observer;
 
 namespace Eksamen2026.ProducerConsumer
@@ -14,6 +15,8 @@ namespace Eksamen2026.ProducerConsumer
         private readonly BlockingCollection<AirSensorSampleData> _dataQueue;
         private bool _isPaused = false;
         public AirSensorSampleData? CurrentSample { get; private set; }//seneste sample, så observeren kan hente den - kan være null
+        private Dictionary<int, AirSensorSampleData> _sensorData;//Dictionary til filter
+        
         public AirMonitorConsumer(BlockingCollection<AirSensorSampleData> dataQueue)
         {
             _dataQueue = dataQueue;

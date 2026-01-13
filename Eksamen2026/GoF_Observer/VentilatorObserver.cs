@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Eksamen2026.Configuration;
 using Eksamen2026.ProducerConsumer;
 using Eksamen2026.VentilatorStrategi;
 
@@ -13,12 +14,22 @@ namespace Eksamen2026.GoF_Observer
         public IVentilator Ventilator {get;}//ventilator med id i ctor
         private VentilatorSpeed _currentSpeed;//enum
         private int _sensorId {get; set;}
+        private readonly VentilatorConfig _config;
         
-        public VentilatorObserver(AirMonitorConsumer airData, IVentilator ventilator, int sensorId)
+        public VentilatorObserver(AirMonitorConsumer airData, IVentilator ventilator, int sensorId)//Standard
         {
             _airData = airData;
             Ventilator = ventilator;
             _sensorId = sensorId;
+            _config = new VentilatorConfig(); //Standardværdier
+            airData.Attach(this);
+        }
+        public VentilatorObserver(AirMonitorConsumer airData, IVentilator ventilator, int sensorId, VentilatorConfig config)//Med configurationer
+        {
+            _airData = airData;
+            Ventilator = ventilator;
+            _sensorId = sensorId;
+            _config = config;
             airData.Attach(this);
         }
         public void Update()
