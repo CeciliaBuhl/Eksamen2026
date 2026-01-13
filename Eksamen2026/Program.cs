@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Eksamen2026.GoF_Observer;
 using Eksamen2026.ProducerConsumer;
 
 BlockingCollection<AirSensorSampleData> sharedQueue = new BlockingCollection<AirSensorSampleData>();//Opret én tråd
@@ -7,7 +8,10 @@ var producer1 = new AirSensorProducer(1, sharedQueue);
 var producer2 = new AirSensorProducer(2, sharedQueue);
 var consumer = new AirMonitorConsumer(sharedQueue);
 
-Console.WriteLine("Air monitor system startet");
+//Observer
+AirQualityLogObserver airQualityLogObserver= new AirQualityLogObserver(consumer);
+
+Console.WriteLine("Air monitor system started");
 Thread producerThread1 = new Thread(producer1.StartProducing);
 Thread producerThread2 = new Thread(producer2.StartProducing);
 Thread consumerThread = new Thread(consumer.StartConsuming);
@@ -46,7 +50,7 @@ while (true)
             producerThread2.Join();
 
             sharedQueue.CompleteAdding();//lukker køen
-            consumerThread.Join();//venter på køen bliver helt tom og lukker monitor pænt
+            consumerThread.Join();//venter på køen bliverhelt tom og lukker monitor pænt
             Console.WriteLine("System stopped");
             return;
     }

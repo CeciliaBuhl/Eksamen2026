@@ -5,18 +5,19 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Threading.Tasks;
+using Eksamen2026.GoF_Observer;
 
 namespace Eksamen2026.ProducerConsumer
 {
-    public class AirMonitorConsumer
+    public class AirMonitorConsumer : Subject
     {
         private readonly BlockingCollection<AirSensorSampleData> _dataQueue;
         private bool _isPaused = false;
+        public AirSensorSampleData? CurrentSample { get; private set; }//seneste sample, så observeren kan hente den, kan være null
         public AirMonitorConsumer(BlockingCollection<AirSensorSampleData> dataQueue)
         {
             _dataQueue = dataQueue;
         }
-
         public void StartConsuming()
         {
             while (!_dataQueue.IsCompleted)
@@ -26,7 +27,8 @@ namespace Eksamen2026.ProducerConsumer
                     AirSensorSampleData sample = _dataQueue.Take();//tømmer kø lige meget hvad
                     if (!_isPaused)//udskriver kun, hvis den ikke er pauset
                     {
-                        Console.WriteLine($"{sample.TimeStamp} - PPM {sample.Measurement}, Sensor: {sample.SensorId}");
+                        CurrentSample = sample;//opdater tilstand til observer 
+                        Notify();//giv besked til observer
                     }
                 }
                 catch (InvalidOperationException ex)
