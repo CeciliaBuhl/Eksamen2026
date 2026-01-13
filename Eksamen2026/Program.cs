@@ -2,9 +2,11 @@
 using Eksamen2026.Configuration;
 using Eksamen2026.FilterStrategi;
 using Eksamen2026.GoF_Observer;
+using Eksamen2026.LoggerStrategi;
 using Eksamen2026.ProducerConsumer;
 using Eksamen2026.TechnicianStrategi;
 using Eksamen2026.VentilatorStrategi;
+using Eksamen2026.VentilatorStrategi.Networkcommunication;
 
 BlockingCollection<AirSensorSampleData> sharedQueue = new BlockingCollection<AirSensorSampleData>();//Opret én tråd
 
@@ -14,16 +16,18 @@ INotification sms = new SMSNotification();
 
 IFilter highestFilter = new HighestFilter();
 
+ILogger fileLogger = new FileLogger(@"C:\Users\cecil\Kode\st3its3-v25-202309470-CeciliaErgleBuhl\Eksamen2026\Eksamen2026\LoggerStrategi\AirQualityLog.txt");
+ILogger consoleLogger = new ConsoleLogger();
+
 var producer1 = new AirSensorProducer(1, sharedQueue);
 var producer2 = new AirSensorProducer(2, sharedQueue);
 var producer3 = new AirSensorProducer(3, sharedQueue);
-var producer4 = new AirSensorProducer(4, sharedQueue);
-var producer5 = new AirSensorProducer(5, sharedQueue);
 var consumer = new AirMonitorConsumer(sharedQueue, highestFilter);
 
 IVentilator ventilator1 = new Ventilator(1);
 IVentilator ventilator2 = new Ventilator(2);
 IVentilator ventilator3 = new Ventilator(3);
+IVentilator ventilator4 = new Ventilator(4);//netværk
 
 //Configuration
 ConfigManager configManager = new ConfigManager();
@@ -37,8 +41,13 @@ configManager.SaveConfig("schoolConfig.json", schoolConfig);
 var currentOfficeConfig = configManager.LoadConfig("officeConfig.json");
 var currentSchoolConfig = configManager.LoadConfig("schoolConfig.json");
 
+// //Networkcommunication
+SocketClient socketClient = new SocketClient("127.0.0.1", 2000);
+
+IVentilator networkVentilator = new NetworkVentilator(socketClient, 4);
+
 //Observers
-AirQualityLogObserver airQualityLogObserver = new AirQualityLogObserver(consumer);
+AirQualityLogObserver airQualityLogObserver = new AirQualityLogObserver(consumer, consoleLogger);
 TechnicianObserver technicianObserver = new TechnicianObserver(consumer, email);
 
 //VentilatorObserver ventilatorObserver1 = new VentilatorObserver(consumer, ventilator1, 1);//uden config
@@ -47,10 +56,13 @@ VentilatorObserver ventilatorObserver2 = new VentilatorObserver(consumer, ventil
 //VentilatorObserver ventilatorObserver2 = new VentilatorObserver(consumer, ventilator2, 2, currentSchoolConfig);
 VentilatorObserver ventilatorObserver3 = new VentilatorObserver(consumer, ventilator3, 3, currentOfficeConfig);
 
+VentilatorObserver ventilatorObserver4 = new VentilatorObserver(consumer, networkVentilator, 1, currentOfficeConfig);//netværk med sensor 1
+
 var defaultConfig = new VentilatorConfig();//default værdier
 
 Console.WriteLine("Air monitor system started");
 Console.WriteLine($"Activated noticifation handler: {technicianObserver.Notification.GetType().Name}");
+Console.WriteLine($"Activated logging: {airQualityLogObserver.Logger.GetType().Name}");
 //Console.WriteLine($"Loaded ventilator config {1}: Off: {defaultConfig.OffSetting} Low: {defaultConfig.LowSetting}, Medium: {defaultConfig.MediumSetting}, High: {defaultConfig.HighSetting}");
 //Console.WriteLine($"Loaded ventilator config {2}: Off: {currentSchoolConfig.OffSetting} Low: {currentSchoolConfig.LowSetting}, Medium: {currentSchoolConfig.MediumSetting}, High: {currentSchoolConfig.HighSetting}");
 Console.WriteLine($"Loaded ventilator config {3}: Off: {currentOfficeConfig.OffSetting} Low: {currentOfficeConfig.LowSetting}, Medium: {currentOfficeConfig.MediumSetting}, High: {currentOfficeConfig.HighSetting}");
@@ -67,6 +79,8 @@ consumerThread.Start();
 
 Console.WriteLine("Press 'e' to activate SMS notification");
 Console.WriteLine("Press 's' to activate email notification");
+Console.WriteLine("Press 'l' to log in console");
+Console.WriteLine("Press 'k' to log in txt-file");
 Console.WriteLine("Press 'p' to pause system");
 Console.WriteLine("Press 'r' to resume system");
 Console.WriteLine("Press 'x' to close system");
@@ -85,6 +99,16 @@ while (true)
         case 'S':
             Console.WriteLine("\nSMS notification activated");
             technicianObserver.Notification = new SMSNotification();
+            break;
+        case 'l':
+        case 'L':
+            Console.WriteLine("\nLogging in txt-file");
+            airQualityLogObserver.Logger = fileLogger;
+            break;
+        case 'k':
+        case 'K':
+            Console.WriteLine("\nLogging in console");
+            airQualityLogObserver.Logger = consoleLogger;
             break;
         case 'p':
         case 'P':
