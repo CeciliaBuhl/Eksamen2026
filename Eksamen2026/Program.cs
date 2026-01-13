@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Eksamen2026.GoF_Observer;
 using Eksamen2026.ProducerConsumer;
+using Eksamen2026.TechnicianStrategi;
 
 BlockingCollection<AirSensorSampleData> sharedQueue = new BlockingCollection<AirSensorSampleData>();//Opret én tråd
 
@@ -8,10 +9,16 @@ var producer1 = new AirSensorProducer(1, sharedQueue);
 var producer2 = new AirSensorProducer(2, sharedQueue);
 var consumer = new AirMonitorConsumer(sharedQueue);
 
-//Observer
-AirQualityLogObserver airQualityLogObserver= new AirQualityLogObserver(consumer);
+//Strategi
+INotification email = new EmailNotification();
+INotification sms = new SMSNotification();
+
+//Observers
+AirQualityLogObserver airQualityLogObserver = new AirQualityLogObserver(consumer);
+TechnicianObserver technicianObserver = new TechnicianObserver(consumer, email);
 
 Console.WriteLine("Air monitor system started");
+Console.WriteLine($"Activated noticifation handler: {technicianObserver.Notification.GetType().Name}");
 Thread producerThread1 = new Thread(producer1.StartProducing);
 Thread producerThread2 = new Thread(producer2.StartProducing);
 Thread consumerThread = new Thread(consumer.StartConsuming);
@@ -20,16 +27,27 @@ producerThread1.Start();
 producerThread2.Start();
 consumerThread.Start();
 
+Console.WriteLine("Press 'e' to activate SMS notification");
+Console.WriteLine("Press 's' to activate email notification");
 Console.WriteLine("Press 'p' to pause system");
 Console.WriteLine("Press 'r' to resume system");
 Console.WriteLine("Press 'x' to close system");
-Console.ReadKey();
 
 while (true)
 {
     var consoleKeyInfo = Console.ReadKey();
     switch (consoleKeyInfo.KeyChar)
     {
+        case 'e':
+        case 'E':
+            Console.WriteLine("\nEmail notification activated");
+            technicianObserver.Notification = new EmailNotification();
+            break;
+        case 's':
+        case 'S':
+            Console.WriteLine("\nSMS notification activated");
+            technicianObserver.Notification = new SMSNotification();
+            break;
         case 'p':
         case 'P':
             Console.WriteLine("\nPausing system");

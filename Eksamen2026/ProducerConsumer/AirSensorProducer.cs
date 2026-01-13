@@ -8,8 +8,7 @@ namespace Eksamen2026.ProducerConsumer
 {
     public class AirSensorProducer
     {
-        private int _currentMeasurement = 1000;//Initialiseres til 1000 ppm
-
+        private int _currentMeasurement = 2000;//Initialiseres til 1000 ppm
         private readonly Random _random = new Random();//field for at 2 sensorer ikke opretter samme random i GenerateSample()
         private readonly BlockingCollection<AirSensorSampleData> _dataQueue;
         public int SensorId { get; }//bruges i ctor til identificering
